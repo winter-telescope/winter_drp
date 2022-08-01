@@ -1,4 +1,4 @@
-FROM debian
+FROM python:3.10
 WORKDIR /usr/src/winterdrp
 #COPY ./* $HOME
 RUN  apt-get update \
@@ -8,8 +8,8 @@ RUN  apt-get update \
      swarp \
   && rm -rf /var/lib/apt/lists/*
 
-FROM python:3.10
 RUN /usr/local/bin/python -m pip install --upgrade pip
 COPY . .
-
 RUN pip install -e .
+alias swarp=SWarp
+alias sex=/usr/bin/source-extractor
