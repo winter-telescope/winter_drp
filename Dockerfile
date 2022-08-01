@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.10.5-alpine3.16
 WORKDIR /usr/src/winterdrp
 #COPY ./* $HOME
 RUN  apt-get update \
@@ -11,5 +11,5 @@ RUN  apt-get update \
 RUN /usr/local/bin/python -m pip install --upgrade pip
 COPY . .
 RUN pip install -e .
-alias swarp=SWarp
-alias sex=/usr/bin/source-extractor
+RUN alias swarp=SWarp
+RUN alias sex=/usr/bin/source-extractor
