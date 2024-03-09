@@ -67,7 +67,6 @@ from mirar.pipelines.winter.generator import (
 from mirar.pipelines.winter.load_winter_image import (
     annotate_winter_subdet_headers,
     get_raw_winter_mask,
-    load_stacked_winter_image,
     load_test_winter_image,
     load_winter_mef_image,
     load_winter_stack,
@@ -202,22 +201,12 @@ load_test = [
     ImageBatcher("UTCTIME"),
 ]
 
-load_ref = [
-    ImageLoader(
-        input_sub_dir="stack",
-        load_image=load_stacked_winter_image,
-        input_img_dir=base_output_dir,
-    )
-]
-
 refbuild = [
     GetReferenceImage(ref_image_generator=winter_reference_generator),
     ImageSaver(output_dir_name="stacked_ref"),
 ]
 
 # Start for new WINTER blocks:
-
-# Loading
 
 load_raw = [
     MEFLoader(
@@ -335,12 +324,12 @@ load_unpacked = [
     ImageRejector(("BOARD_ID", "0")),
 ]
 
-#
+# Calibration hunter
 cal_hunter = [
     CalHunter(load_image=load_winter_mef_image, requirements=winter_cal_requirements)
 ]
-# Detrend blocks
 
+# Detrend blocks
 dark_calibrate = [
     ImageDebatcher(),
     ImageBatcher(
@@ -358,6 +347,7 @@ dark_calibrate = [
     CustomImageBatchModifier(winter_dark_oversubtraction_rejector),
 ]
 
+# First pass flat calibration
 first_pass_flat_calibrate = [
     ImageDebatcher(),
     ImageBatcher(
@@ -388,15 +378,12 @@ first_pass_flat_calibrate = [
     ImageSaver(output_dir_name="fp_skysub"),
 ]
 
-load_calibrated = [
-    ImageLoader(input_sub_dir="skysub", input_img_dir=base_output_dir),
-    ImageBatcher(["UTCTIME", "BOARD_ID"]),
-]
-
+# Fourier filtering
 fourier_filter = [
     CustomImageBatchModifier(winter_fourier_filtered_image_generator),
 ]
 
+# Various astrometry-related blocks
 astrometry_net = [
     ImageDebatcher(),
     ImageBatcher(["UTCTIME", "BOARD_ID", "SUBCOORD"]),
@@ -463,6 +450,12 @@ second_pass_validate_astrometry_export_and_filter = validate_astrometry + [
     CustomImageBatchModifier(poor_astrometric_quality_rejector),
 ]
 
+load_calibrated = [
+    ImageLoader(input_sub_dir="skysub", input_img_dir=base_output_dir),
+    ImageBatcher(["UTCTIME", "BOARD_ID"]),
+]
+
+# Stacking
 stack_dithers = [
     ImageDebatcher(),
     ImageBatcher(["BOARD_ID", "FILTER", "EXPTIME", TARGET_KEY, "SUBCOORD"]),
@@ -498,6 +491,7 @@ load_astrometried = [
     )
 ]
 
+# Second pass calibration
 second_pass_calibration = [
     ImageLoader(
         input_sub_dir="fp_stack",
@@ -543,6 +537,7 @@ second_pass_calibration = [
     ImageSaver(output_dir_name="skysub"),
 ]
 
+# Second pass astrometry
 second_pass_astrometry = (
     astrometry_net
     + [
@@ -554,6 +549,7 @@ second_pass_astrometry = (
     ]
 )
 
+# Second pass stacking
 second_pass_stack = (
     second_pass_astrometry
     + second_pass_validate_astrometry_export_and_filter
@@ -563,6 +559,7 @@ second_pass_stack = (
     ]
 )
 
+# Photometric calibration
 photcal_and_export = [
     ImageDebatcher(),
     ImageBatcher(["BOARD_ID", "FILTER", TARGET_KEY, "SUBCOORD"]),
@@ -625,6 +622,7 @@ photcal_and_export = [
         ],
     ),
 ]
+# End of image-reduction blocks
 
 # Image subtraction
 
@@ -729,8 +727,6 @@ detect_candidates = [
     CustomSourceTableModifier(winter_candidate_annotator_filterer),
     SourceWriter(output_dir_name="candidates"),
 ]
-#
-# candidate_colnames = get_column_names_from_schema(winter_candidate_config)
 
 load_sources = [
     SourceLoader(input_dir_name="candidates"),
@@ -916,8 +912,6 @@ reftest = (
 )
 
 detrend_unpacked = load_unpacked + dark_calibrate + first_pass_flat_calibrate
-
-only_ref = load_ref + select_ref + refbuild
 
 realtime = extract_all + mask_and_split + save_raw + full_reduction
 
