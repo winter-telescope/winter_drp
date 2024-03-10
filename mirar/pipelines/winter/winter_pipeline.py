@@ -20,15 +20,9 @@ from mirar.pipelines.winter.blocks import (
     full_reduction,
     imsub,
     load_calibrated,
-    load_final_stack,
     load_raw,
-    load_skyportal,
     load_test,
     mask_and_split,
-    mosaic,
-    name_candidates,
-    photcal_stacks,
-    plot_stack,
     process_candidates,
     realtime,
     reduce,
@@ -39,14 +33,24 @@ from mirar.pipelines.winter.blocks import (
     save_raw,
     second_pass_astrometry,
     second_pass_processing,
-    select_history,
-    select_split_subset,
-    send_to_skyportal,
     stack_forced_photometry,
     unpack_all,
     unpack_all_no_calhunter,
     unpack_subset,
     unpack_subset_no_calhunter,
+)
+from mirar.pipelines.winter.blocks_reduction import (
+    load_final_stack,
+    mosaic,
+    photcal_stacks,
+    plot_stack,
+    select_split_subset,
+)
+from mirar.pipelines.winter.blocks_subtraction import (
+    load_skyportal,
+    name_candidates,
+    select_history,
+    send_to_skyportal,
 )
 from mirar.pipelines.winter.config import PIPELINE_NAME, winter_cal_requirements
 from mirar.pipelines.winter.load_winter_image import load_raw_winter_mef
