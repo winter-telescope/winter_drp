@@ -9,27 +9,20 @@ from mirar.downloader.caltech import download_via_ssh
 from mirar.io import open_mef_image
 from mirar.pipelines.base_pipeline import Pipeline
 from mirar.pipelines.winter.blocks import (
-    astrometry,
     build_test,
     csvlog,
     detect_candidates,
     detrend_unpacked,
     diff_forced_photometry,
     extract_all,
+    first_pass_processing,
     focus_cals,
     full_reduction,
     imsub,
     load_calibrated,
-    load_final_stack,
     load_raw,
-    load_skyportal,
     load_test,
     mask_and_split,
-    mosaic,
-    name_candidates,
-    only_ref,
-    photcal_stacks,
-    plot_stack,
     process_candidates,
     realtime,
     reduce,
@@ -38,14 +31,26 @@ from mirar.pipelines.winter.blocks import (
     refbuild,
     reftest,
     save_raw,
-    select_history,
-    select_split_subset,
-    send_to_skyportal,
+    second_pass_astrometry,
+    second_pass_processing,
     stack_forced_photometry,
     unpack_all,
     unpack_all_no_calhunter,
     unpack_subset,
     unpack_subset_no_calhunter,
+)
+from mirar.pipelines.winter.blocks_reduction import (
+    load_final_stack,
+    mosaic,
+    photcal_stacks,
+    plot_stack,
+    select_split_subset,
+)
+from mirar.pipelines.winter.blocks_subtraction import (
+    load_skyportal,
+    name_candidates,
+    select_history,
+    send_to_skyportal,
 )
 from mirar.pipelines.winter.config import PIPELINE_NAME, winter_cal_requirements
 from mirar.pipelines.winter.load_winter_image import load_raw_winter_mef
@@ -62,7 +67,7 @@ class WINTERPipeline(Pipeline):
     default_cal_requirements = winter_cal_requirements
 
     all_pipeline_configurations = {
-        "astrometry": load_calibrated + astrometry,
+        "astrometry": load_calibrated + second_pass_astrometry,
         "unpack_subset": unpack_subset,
         "unpack_all": unpack_all,
         "unpack_subset_no_calhunter": unpack_subset_no_calhunter,
@@ -87,7 +92,6 @@ class WINTERPipeline(Pipeline):
         + process_candidates,
         "refbuild": refbuild,
         "reftest": reftest,
-        "only_ref": only_ref,
         "realtime": realtime,
         "detect_candidates": load_final_stack + imsub + detect_candidates,
         "full_imsub": load_final_stack + imsub + detect_candidates + process_candidates,
@@ -108,6 +112,8 @@ class WINTERPipeline(Pipeline):
         "name_candidates": name_candidates,
         "diff_forced_phot": diff_forced_photometry,
         "stack_forced_phot": stack_forced_photometry,
+        "firstpass": first_pass_processing,
+        "secpass": second_pass_processing,
         "detrend": unpack_all + detrend_unpacked,
         "send_with_history": select_history + send_to_skyportal,
     }
